@@ -20,12 +20,12 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
-
 public class Ontoseer {
 	public static List<String> classlist;
 	public static List<String> objectPropertyList;
 	public static List<String> dataPropertyList;
 	public  String path;
+	public int argInd; 
 	public HashMap<String, String> reClass;
 	public HashMap<String, String> reProperty;
 
@@ -60,7 +60,8 @@ public class Ontoseer {
 		return false;
 	}
 	
-	public void odpRecommendation(String[] args, int i) {
+	public void odpRecommendation(String[] args) {  //int argInd
+		
 		System.out.println("\n\n\n************** ODP Recommendation *************");
 		
 		 // List to contains all the entities 
@@ -74,75 +75,133 @@ public class Ontoseer {
 		 temp.addAll(dataPropertyList);
 		 String[] str = temp.toArray(new String[0]);
 		 ODPRecommendation odprcmd = new ODPRecommendation(str);
-		 odprcmd.ODP(str, args[i], args[i+1], args[i+2]);
+		 odprcmd.ODP(str, args[argInd], args[argInd+1], args[argInd+2]);
 		 System.out.println("-----------------------------------------------------------------------------------------------");
 	}
 	
-	public int axiomRecommendation(String[] args, int argLength, String[] commands_, int i, Ontoseer ontoseer) {
+	public int axiomRecommendation(String[] args, int argLength, String[] commands_, Ontoseer ontoseer) {
 		System.out.println("\n\n\n************** Axiom Recommendation *************");
 		 AxiomRecommendation axioms = new AxiomRecommendation();
-		 if(i<argLength && !ontoseer.isPresent(args[i], commands_)) {
-			 axioms.recommendAxioms(args[i]);
-			 i++;
+		 if(argInd<argLength && !ontoseer.isPresent(args[argInd], commands_)) {
+			 HashMap<String, String>reAxiom =  axioms.axiomRecommendation(args[argInd]);
+			 argInd++;
 		 }
 		 System.out.println("-----------------------------------------------------------------------------------------------");
-		 return i;
+		 return argInd;
 	}
 	
-	public int classNameConvention(String []args, int argLength, String[] commands_, int i, Ontoseer ontoseer) {
+	public int classNameConvention(String []args, int argLength, String[] commands_, Ontoseer ontoseer) {
+//		System.out.println("argIndex = "+argInd);
 		System.out.println("\n\n\n************** Class Recommendation *************");
-			NameConventionPanel namingPanel = new NameConventionPanel();
-			reClass = namingPanel.vocab(classlist);
-			for(;i<argLength && !ontoseer.isPresent(args[i],commands_);i++) {
-				if(reClass.containsKey(args[i])) {
-					System.out.println("Recommended class for "+args[i]+" is "+reClass.get(args[i]));
-				}
-				else {
-					System.out.println(args[i]+ " class is not present in ontology");
-				}
-			}
-			System.out.println("-----------------------------------------------------------------------------------------------");
-			return i;
-	}
-	
-	public int propertyNameConvention(String[] args, int argLength, String[] commands_, int i, Ontoseer ontoseer) {
-		System.out.println("\n\n\n************** Property Recommendation *************");
-		NameConventionPanel proPanel = new NameConventionPanel();
-		reProperty = proPanel.vocab1(objectPropertyList);
-		for(;i<argLength && !ontoseer.isPresent(args[i],commands_);i++) {
-			if(reProperty.containsKey(args[i])) {
-				System.out.println("Recommended property for "+args[i]+" is "+reProperty.get(args[i]));
+//			NameConventionPanel namingPanel = new NameConventionPanel();
+		ClassRecommendation className = new ClassRecommendation();
+		reClass = className.classRecommendation(classlist);
+		for(;argInd<argLength && !ontoseer.isPresent(args[argInd],commands_);argInd++) {
+			if(reClass.containsKey(args[argInd])) {
+				System.out.println("Recommended class for "+args[argInd]+" is "+reClass.get(args[argInd]));
 			}
 			else {
-				System.out.println(args[i]+ " property is not present in ontology");
+				System.out.println(args[argInd]+ " class is not present in ontology");
 			}
 		}
 		System.out.println("-----------------------------------------------------------------------------------------------");
-		return i;
+		return argInd;
 	}
 	
-	public void classHierarchyValidation(String[] args, int i) {
+	public int propertyNameConvention(String[] args, int argLength, String[] commands_,  Ontoseer ontoseer) { //int argInd,
+		System.out.println("\n\n\n************** Property Recommendation *************");
+		PropertyRecommendation propertyName = new PropertyRecommendation();
+		reProperty = propertyName.propertiesRecommendation(objectPropertyList);
+		for(;argInd<argLength && !ontoseer.isPresent(args[argInd],commands_);argInd++) {
+			if(reProperty.containsKey(args[argInd])) {
+				System.out.println("Recommended property for "+args[argInd]+" is "+reProperty.get(args[argInd]));
+			}
+			else {
+				System.out.println(args[argInd]+ " property is not present in ontology");
+			}
+		}
+		System.out.println("-----------------------------------------------------------------------------------------------");
+		return argInd;
+	}
+	
+	public void classHierarchyValidation(String[] args) { //int argInd,
 		ClassHierarchyValidation classHierarchyValidation = new ClassHierarchyValidation();
 		System.out.println("\n\n\n************** Class Hierarchy Validation *************");
-		classHierarchyValidation.classHierarchy(args[i], args[i+1], args[i+2], args[i+3]);
+		classHierarchyValidation.classHierarchy(args[argInd], args[argInd+1], args[argInd+2], args[argInd+3]);
 		System.out.println("-----------------------------------------------------------------------------------------------");
 	}
 	
-	public int vocabularyRecommendation(String[] args, int argLength, String[] commands_, int i, Ontoseer ontoseer) {
+	public int vocabularyRecommendation(String[] args, int argLength, String[] commands_, Ontoseer ontoseer) { //, int argInd
 		 System.out.println("\n\n\n************** Vocabulary Recommendation *************");
 		 VocabularyRecommendation vocabRecommendation = new VocabularyRecommendation();
-		 if(i<argLength && !ontoseer.isPresent(args[i], commands_)) {
-			 vocabRecommendation.findsimilarity(args[i]);
-			 vocabRecommendation.URI(args[i]);
-			 i++;
+		 if(argInd<argLength && !ontoseer.isPresent(args[argInd], commands_)) {
+			 vocabRecommendation.findsimilarity(args[argInd]);
+			 vocabRecommendation.URI(args[argInd]);
+			 argInd++;
 		 }
-		 return i;
+		 return argInd;
 	}
+	
+	// To fetch the details of an ontology
+	public void parseOntology() {
+		OWLOntologyManager manager=OWLManager.createOWLOntologyManager();
+		try {
+		    // loading the axioms
+			final OWLOntology owl=manager.loadOntologyFromOntologyDocument(new File(path));
+			 //System.out.println(owl.getAxiomCount());
+			 Set<OWLEntity> ont = owl.getSignature();
+//			 System.out.println("ont "+ont);
+			 Set<OWLClass>classes = owl.getClassesInSignature();
+			 Set<OWLObjectProperty> prop;
+	         Set<OWLDataProperty> dataProp;
+	         Set<OWLNamedIndividual> individuals;
+			 
+	         prop = owl.getObjectPropertiesInSignature();
+	         dataProp = owl.getDataPropertiesInSignature();
+	         individuals = owl.getIndividualsInSignature();
+	         
+			 
+	         classlist = new ArrayList<String>();
+	         objectPropertyList = new ArrayList<String>();
+	         dataPropertyList = new ArrayList<String>();
+//	         System.out.println("classes = "+ classes);
+	         
+	       //System.out.println("\n**********#### Classes ######*************\n");
+			 for(OWLClass cls : classes) {
+//				 System.out.println("+: " + cls.getIRI().getShortForm());
+				 classlist.add(cls.getIRI().getShortForm());
+				 //System.out.println("Class "+cls);
+				 
+				 //System.out.println(" \tObject Property Domain");
+	                for (OWLObjectPropertyDomainAxiom op : owl.getAxioms(AxiomType.OBJECT_PROPERTY_DOMAIN)) {                        
+	                        if (op.getDomain().equals(cls)) {   
+	                            for(OWLObjectProperty oop : op.getObjectPropertiesInSignature()){
+//	                                 System.out.println("\t\t +: " + oop.getIRI().getShortForm());
+	                                 objectPropertyList.add(oop.getIRI().getShortForm());
+	                            }
+	                            //System.out.println("\t\t +: " + op.getProperty().getNamedProperty().getIRI().getShortForm());
+	                        }
+	                    }
+
+	                    //System.out.println(" \tData Property Domain");
+	                    for (OWLDataPropertyDomainAxiom dp : owl.getAxioms(AxiomType.DATA_PROPERTY_DOMAIN)) {
+	                        if (dp.getDomain().equals(cls)) {   
+	                            for(OWLDataProperty odp : dp.getDataPropertiesInSignature()){
+//	                                 System.out.println("\t\t +: " + odp.getIRI().getShortForm());
+	                                 dataPropertyList.add(odp.getIRI().getShortForm());
+	                            }
+	                            //System.out.println("\t\t +:" + dp.getProperty());
+	                        }
+	                    }
+			 }
+	}catch (OWLOntologyCreationException e) {
+		e.printStackTrace();
+	}
+}
 	
 	public static void main(String[] args) {
 		System.out.print("\033[H\033[2J");  
 		System.out.flush();  
-		 OWLOntologyManager manager=OWLManager.createOWLOntologyManager();
 		 Ontoseer ontoseer = new Ontoseer();
 		 
 		 if(args[0].equalsIgnoreCase("-p") && args.length>=2) {
@@ -161,149 +220,89 @@ public class Ontoseer {
 			 System.out.println("Not a valid command....");
 			 System.exit(0);
 		 }
-		 try {
-		    // loading the axioms
-			final OWLOntology owl=manager.loadOntologyFromOntologyDocument(new File(ontoseer.path));
-			 //System.out.println(owl.getAxiomCount());
-			 Set<OWLEntity> ont = owl.getSignature();
-			 Set<OWLClass>classes = owl.getClassesInSignature();
-			 Set<OWLObjectProperty> prop;
-	         Set<OWLDataProperty> dataProp;
-	         Set<OWLNamedIndividual> individuals;
-			 
-	         prop = owl.getObjectPropertiesInSignature();
-	         dataProp = owl.getDataPropertiesInSignature();
-	         individuals = owl.getIndividualsInSignature();
-	         
-			 
-	         classlist = new ArrayList<String>();
-	         objectPropertyList = new ArrayList<String>();
-	         dataPropertyList = new ArrayList<String>();
-	         
-	       //System.out.println("\n**********#### Classes ######*************\n");
-			 for(OWLClass cls : classes) {
-				 //System.out.println("+: " + cls.getIRI().getShortForm());
-				 classlist.add(cls.getIRI().getShortForm());
-				 //System.out.println("Class "+cls);
-				 
-				 //System.out.println(" \tObject Property Domain");
-	                for (OWLObjectPropertyDomainAxiom op : owl.getAxioms(AxiomType.OBJECT_PROPERTY_DOMAIN)) {                        
-	                        if (op.getDomain().equals(cls)) {   
-	                            for(OWLObjectProperty oop : op.getObjectPropertiesInSignature()){
-	                                 //System.out.println("\t\t +: " + oop.getIRI().getShortForm());
-	                                 objectPropertyList.add(oop.getIRI().getShortForm());
-	                            }
-	                            //System.out.println("\t\t +: " + op.getProperty().getNamedProperty().getIRI().getShortForm());
-	                        }
-	                    }
-
-	                    //System.out.println(" \tData Property Domain");
-	                    for (OWLDataPropertyDomainAxiom dp : owl.getAxioms(AxiomType.DATA_PROPERTY_DOMAIN)) {
-	                        if (dp.getDomain().equals(cls)) {   
-	                            for(OWLDataProperty odp : dp.getDataPropertiesInSignature()){
-	                                 //System.out.println("\t\t +: " + odp.getIRI().getShortForm());
-	                                 dataPropertyList.add(odp.getIRI().getShortForm());
-	                            }
-	                            //System.out.println("\t\t +:" + dp.getProperty());
-	                        }
-	                    }
-			 }
-
+		 ontoseer.parseOntology();
 			 ontoseer.reClass = new HashMap<>();
 			 ontoseer.reProperty = new HashMap<>();
 			 
 			 int argLength = args.length;
 			 String[] commands_ = {"-cr","-pr","-or","-ar","-vr","-chr","-ClassRecommendation","-PropertyRecommendation","-ODPRecommendation","-AxiomRecommendation","-VocabularyRecommendation","-ClassHierarchyValidation"};
 			 if(args.length>2) {
-				 int i = 2;
-				 while(i<argLength) {
-					 String cmd = args[i];
-					 i++;
+				 ontoseer.argInd = 2;
+				 while(ontoseer.argInd<argLength) {
+					 String cmd = args[ontoseer.argInd];
+					 ontoseer.argInd++;
 					 // Recommend Class Name
 					 if(cmd.equals("-cr") || cmd.equals("-ClassRecommendation")) {
-						 if(i<argLength && ontoseer.isPresent(args[i], commands_)) {
+						 if(ontoseer.argInd<argLength && ontoseer.isPresent(args[ontoseer.argInd], commands_)) {
 							 ontoseer.commands();
 							 break;
 						 }
-						 i = ontoseer.classNameConvention(args, argLength, commands_, i, ontoseer);
+						 ontoseer.argInd= ontoseer.classNameConvention(args, argLength, commands_, ontoseer); //, i
 			 			}
 						 				
 			 		 // Property Name Recommendation
 					 else if(cmd.equals("-pr") || cmd.equals("-PropertyRecommendation")) {
-							 if(i<argLength && ontoseer.isPresent(args[i], commands_)) {
+							 if(ontoseer.argInd<argLength && ontoseer.isPresent(args[ontoseer.argInd], commands_)) {
 								 ontoseer.commands();
 								 break;
 							 }
-						 i = ontoseer.propertyNameConvention(args, argLength, commands_, i, ontoseer);
+							 ontoseer.argInd = ontoseer.propertyNameConvention(args, argLength, commands_, ontoseer); //, i
 			 			}
 						 				
 					 // ODP Recommendation
 					 else if(cmd.equals("-or") || cmd.equals("-ODPRecommendation")) {
 						 
-						 if(i>=argLength || (i+1)>=argLength || (i+2)>=argLength) {
+						 if(ontoseer.argInd>=argLength || (ontoseer.argInd+1)>=argLength || (ontoseer.argInd+2)>=argLength) {
 							 ontoseer.commands();
 							 break;
 						 }
 						 
-						 else if(ontoseer.isPresent(args[i],commands_) || ontoseer.isPresent(args[i+1],commands_) || ontoseer.isPresent(args[i+2],commands_)) {
+						 else if(ontoseer.isPresent(args[ontoseer.argInd],commands_) || ontoseer.isPresent(args[ontoseer.argInd+1],commands_) || ontoseer.isPresent(args[ontoseer.argInd+2],commands_)) {
 							 ontoseer.commands();
 							 break;
 						 }
 						 else {
-						 ontoseer.odpRecommendation(args, i);
-						 i = i+3;
+						 ontoseer.odpRecommendation(args); //, i
+						 ontoseer.argInd = ontoseer.argInd+3;
 						 }
-						}
-			 
-			 
-			 //parsing the axioms === 
-//			 System.out.println("\n=========================== Axioms =====================\n");
-//			 owl.getClassesInSignature().forEach(i->{
-//			        final PrintParse p=new PrintParse(i);
-//			        owl.getReferencingAxioms(i).forEach(axiom->axiom.accept(p));
-//			    });
-//			 for (OWLEntity entity : ont) {
-//			    System.out.println(entity);//this print only the entities
-//			}
-				 
-				 
+						}		 
 							 
 					// Axiom Recommendation
 					 else if(cmd.equals("-ar") || cmd.equals("-AxiomRecommendation")){
-						 if(i<argLength && ontoseer.isPresent(args[i], commands_)) {
+						 if(ontoseer.argInd<argLength && ontoseer.isPresent(args[ontoseer.argInd], commands_)) {
 							 ontoseer.commands();
 							 break;
 						 }
 						 else {
-							 i = ontoseer.axiomRecommendation(args, argLength, commands_, i, ontoseer);
+							 ontoseer.argInd= ontoseer.axiomRecommendation(args, argLength, commands_, ontoseer); //, i
 						 }
 						}
 					
 					// Vocabulary Recommendation
 					 else if(cmd.equals("-vr") || cmd.equals("-VocabularyRecommendation")) {
-						 if(i<argLength && ontoseer.isPresent(args[i], commands_)) {
+						 if(ontoseer.argInd<argLength && ontoseer.isPresent(args[ontoseer.argInd], commands_)) {
 							 ontoseer.commands();
 							 break;
 						 }
 						 else {
-							 i = ontoseer.vocabularyRecommendation(args, argLength, commands_, i, ontoseer);
+							 ontoseer.argInd = ontoseer.vocabularyRecommendation(args, argLength, commands_, ontoseer); //, i
 						 }
 					}
 						
 					// Class Hierarchy validation
 					 else if(cmd.equals("-chr") || cmd.equals("-ClassHierarchyValidation")) {
-						 if(i>=argLength || (i+1)>=argLength || (i+2)>=argLength || (i+3)>=argLength) {
+						 if(ontoseer.argInd>=argLength || (ontoseer.argInd+1)>=argLength || (ontoseer.argInd+2)>=argLength || (ontoseer.argInd+3)>=argLength) {
 							 ontoseer.commands();
 							 break;
 						 }
 						
-						 else if(ontoseer.isPresent(args[i],commands_) || ontoseer.isPresent(args[i+1],commands_) || ontoseer.isPresent(args[i+2],commands_) || ontoseer.isPresent(args[i+3],commands_)) {
+						 else if(ontoseer.isPresent(args[ontoseer.argInd],commands_) || ontoseer.isPresent(args[ontoseer.argInd+1],commands_) || ontoseer.isPresent(args[ontoseer.argInd+2],commands_) || ontoseer.isPresent(args[ontoseer.argInd+3],commands_)) {
 							 ontoseer.commands();
 							 break;
 						 }
 						 else {
-							 ontoseer.classHierarchyValidation(args, i);
-							 i = i+4;
+							 ontoseer.classHierarchyValidation(args); //, i
+							 ontoseer.argInd = ontoseer.argInd+4;
 						 }
 					}
 							 
@@ -318,9 +317,6 @@ public class Ontoseer {
 				ontoseer.commands();
 				System.exit(0);
 			}
-	}catch (OWLOntologyCreationException e) {
-		e.printStackTrace();
-	}
 	System.out.println();
 }
 }

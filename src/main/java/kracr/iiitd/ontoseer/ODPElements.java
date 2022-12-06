@@ -352,7 +352,7 @@ public class ODPElements {
 						count=count+20;
 					}
 					else {
-					double d = StringEqualityPercentCheckUsingJaroWinklerDistance.similarity((myList.get(i))[j], st[k]);
+					double d = JaroWinklerDistance.similarity((myList.get(i))[j], st[k]);
 					
 				if(d>=0.85) {
 					count=count+1;

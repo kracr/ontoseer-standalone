@@ -484,7 +484,7 @@ public class ODPDescription {
 		for(int i=0;i<147;i++) {
 			double d=0.0;
 			
-			d=StringEqualityPercentCheckUsingJaroWinklerDistance.similarity(st, arr[i]); //calling the JaroWinkler similarity function
+			d=JaroWinklerDistance.similarity(st, arr[i]); //calling the JaroWinkler similarity function
 			ls.add(d);
 			ls1.add(arr1[i]);
 			ls5.add(IRI[i]);

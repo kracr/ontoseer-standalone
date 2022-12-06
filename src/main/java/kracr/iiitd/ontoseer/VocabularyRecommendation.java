@@ -434,7 +434,7 @@ public class VocabularyRecommendation {
 						count=count+20;
 					}
 					else {
-					double d=StringEqualityPercentCheckUsingJaroWinklerDistance.similarity((myList.get(i))[j],st );
+					double d=JaroWinklerDistance.similarity((myList.get(i))[j],st );
 					
 				if(d>=0.75) {
 					count=count+1;
