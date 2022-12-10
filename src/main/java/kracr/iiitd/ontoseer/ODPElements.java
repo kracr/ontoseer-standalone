@@ -335,40 +335,29 @@ public class ODPElements {
 
 }
 	public List<Double> findsimilarity(String st[]) {
-		//System.out.println(myList.size());
+		JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 		List<Double>counts=new ArrayList<>();
-		int count=0;
-		//int count1=0;
-		//List<Double>ls=new ArrayList<Double>();
-		//List<String>ls1=new ArrayList<String>();
+//		int count=0;
 		List<String>ls2=new ArrayList<String>();
-		//StringEqualityPercentCheckUsingJaroWinklerDistance c = new StringEqualityPercentCheckUsingJaroWinklerDistance();
 		for(int i=0;i<myList.size();i++) {
-			count=0;
-			//count1=0;
+			int count=0;
 			for(int j=0;j<myList.get(i).length;j++) {
 				for(int k=0;k<st.length;k++) {
-					if((myList.get(i))[j].equalsIgnoreCase(st[k])) {
-						count=count+20;
+					if((myList.get(i))[j].equalsIgnoreCase(st[k])) {   // if both strings are same then increase 
+						count=count+20;                                // with high weight
 					}
 					else {
-					double d = JaroWinklerDistance.similarity((myList.get(i))[j], st[k]);
-					
-				if(d>=0.85) {
-					count=count+1;
-				}
+						double d = similarity.similarityCheck((myList.get(i))[j], st[k]);
+						if(d>=0.85) 
+							count=count+1;   // if string not are equal the increase count by 1 when similarity is more than 0.85
 					}
-		}
-				
+				}
 			}
 			double e=(count)/((myList.get(i).length*st.length));
-			//System.out.println(myList.get(i)+" "+e);
 			counts.add(e);
 		}
-		//System.out.println(name.length);
 		for(int i=0;i<name.length;i++) {
 				ls2.add(name[i]);
-				//System.out.println(name[i]+counts.get(i));	
 		}
 		return counts;
     }
@@ -381,13 +370,8 @@ public class ODPElements {
 		
 	
 	public static void main(String args[]) {
-		ODPElements d=new ODPElements();
-		//Scanner sc=new Scanner(System.in);
-		//System.out.print("Enter description for ontology");
-		
+		ODPElements d=new ODPElements();		
 		String st[]= {"Fishery","AquaticSpecies"};
-		d.findsimilarity(st);
-		
-		
+		System.out.println(d.findsimilarity(st));
 	}
 }

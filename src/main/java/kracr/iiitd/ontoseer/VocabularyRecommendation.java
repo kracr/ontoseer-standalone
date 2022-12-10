@@ -420,54 +420,32 @@ public class VocabularyRecommendation {
 	public List<String> findsimilarity(String st) {
 		List<Double>counts=new ArrayList<>();
 		int count=0;
-		//int count1=0;
-		//List<Double>ls=new ArrayList<Double>();
-		//List<String>ls1=new ArrayList<String>();
-
-		//StringEqualityPercentCheckUsingJaroWinklerDistance c = new StringEqualityPercentCheckUsingJaroWinklerDistance();
 		for(int i=0;i<myList.size();i++) {
 			count=0;
-			//count1=0;
 			for(int j=0;j<myList.get(i).length;j++) {
-					
-					if((myList.get(i))[j].equalsIgnoreCase(st)) {
-						count=count+20;
-					}
-					else {
-					double d=JaroWinklerDistance.similarity((myList.get(i))[j],st );
-					
-				if(d>=0.75) {
-					count=count+1;
+				if((myList.get(i))[j].equalsIgnoreCase(st)) {
+					count=count+20;
 				}
+				else {
+					double d=JaroWinklerDistance.similarity((myList.get(i))[j],st );
+					if(d>=0.75) {
+						count=count+1;
 					}
-			
-			
-		}
-				
-			
+				}
+			}
 			double e=(count);
-			//System.out.println(myList.get(i)+" "+e);
 			counts.add(e);
-			
-		
 		}
 		for(int i=0;i<vocabnames.size();i++) {
 			if(counts.get(i)>=1) {
 				int l=i;
-				//System.out.println(i);
 				ls2.add(" "+vocabnames.get(l));
-				//ls3.add("Description: "+desc.get(l));
 				ls4.add("IRI: "+uri[l]);
-			}
-			
-			else {
-				continue;
 			}
 		}
 		
 		for(int i=0;i<ls2.size();i++) {
 			System.out.println(ls2.get(i));
-			//System.out.println(counts.get(i));
 		}
 		return ls2;
     }

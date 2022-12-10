@@ -1,8 +1,12 @@
 package kracr.iiitd.ontoseer;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +24,7 @@ public class ClassRecommendation {
 		
 		// Iterating through words
 		for(String word : words){
+			
 			//Extracting first char
 			char firstChar = word.charAt(0);
 			// Checking if firstchar is not in upper case already
@@ -29,9 +34,7 @@ public class ClassRecommendation {
 			} else
 				sb.append(word.substring(0));
 			
-		}
-		// Iterating through words
-		// Converting StringBuilder to String. trim() is needed to trim last space appended. 
+		} 
 		String result = sb.toString().trim();
 		return result;
 	}
@@ -43,61 +46,61 @@ public class ClassRecommendation {
 	    if(!str.equals("")&& (str != null)&& (str.matches(".*\\d.*"))){
 	    	 d=str.replaceAll("\\d","");
 	    }
-	    //System.out.println(d);
 	    return d;        
 	}
 
-	
-	public static void main(String args[]) {
-		ClassRecommendation s=new ClassRecommendation();
-		List<String>ls=new ArrayList<String>();
-		List<String>ls1=new ArrayList<String>();
-		
-		List<String>classes = new ArrayList<>();
-		classes.add("Person#!%$&_under");
-		classes.add("1234");
-		System.out.println(s.classRecommendation(classes));
-	}
-
 	// Recommend a class name in CamelCase
-	public HashMap<String, String> classRecommendation(List<String> classnames) {
-		List<String>ls=new ArrayList<String>();
-		HashMap<String, String>reClass = new HashMap<>();
+	public List<String> classRecommendation(String classnames) {
+		JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 		 String EMPTY = "";
 		String splChrs = "-/@#$%^&_+=()";
 		String chrs = "-/@#$%^&_+=()0123456789" ;
 		
-		for(int i=0;i<classnames.size(); i++) {
-			boolean found = classnames.get(i).matches("[" + splChrs + "]+");
-	
-			if(found) {
-				ls.add("Classname only contains Special characters Please change.");
-				reClass.put(classnames.get(i), "Classname only contains Special characters Please change.");
-				//return ls;
+//		for(int i=0;i<classnames.size(); i++) {
+		List<String>reClass=new ArrayList<String>();
+		boolean found = classnames.matches("[" + splChrs + "]+");
+
+		if(found) {
+			reClass.add("Classname only contains Special characters Please change.");
+		}
+		else if(classnames.matches("[0-9]+") && classnames.length() > 2) {
+	          System.out.println("");
+	          reClass.add("Classname only contains digits Please change.");
+	      }
+	    else if(classnames.matches("[" + chrs + "]+"))
+    	{
+    		System.out.println("");
+	        reClass.add("Classname only contains digits and special characters Please change.");
+    	}
+		else{ 
+		ClassRecommendation s=new ClassRecommendation();
+		String x=s.convertToCamelCase(classnames);
+		x=s.remove_spaceproperties(x);
+		x=s.isStringOnlyAlphabet(x);
+		reClass.add(x);
+		
+		// seperator for text file
+		String line = "";
+		String splitBy = ",";
+		try {
+			
+			// parsing a CSV file into BufferedReader class constructor
+			BufferedReader br = new BufferedReader(new FileReader("src/main/resources/classIRI.txt"));
+			while ((line = br.readLine()) != null) // returns a Boolean value
+			{
+				String[] cls = line.split(splitBy); // use comma as separator
+				double score = similarity.similarityCheck(x, cls[1]);
+				if (score > 0.8 && reClass.size() <= 4) {
+					cls[1] = s.convertToCamelCase(cls[1]);
+					cls[1] = s.remove_spaceproperties(cls[1]);
+					cls[1] = s.isStringOnlyAlphabet(cls[1]);
+					reClass.add(cls[1]);
+				} else if (reClass.size() >= 5)
+					break;
 			}
-			else if(classnames.get(i).matches("[0-9]+") && classnames.get(i).length() > 2) {
-		          System.out.println("");
-		          ls.add("Classname only contains digits Please change.");
-		          reClass.put(classnames.get(i), "Classname only contains digits Please change.");
-		          //return ls;
-		         // classname="";
-		      }
-		    else if(classnames.get(i).matches("[" + chrs + "]+"))
-	    	{
-	    		System.out.println("");
-		        ls.add("Classname only contains digits and special characters Please change.");
-		        reClass.put(classnames.get(i), "Classname only contains digits and special characters Please change.");
-		        //return ls;
-	    	}
-			else{ 
-			ClassRecommendation s=new ClassRecommendation();
-			String x=s.convertToCamelCase(classnames.get(i));
-			String x1=s.remove_spaceproperties(x);
-			String y=s.isStringOnlyAlphabet(x1);
-			ls.add(y);
-			reClass.put(classnames.get(i), y);
-			}
-		//return ls;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		}
 		return reClass;
 	}
@@ -115,4 +118,15 @@ public class ClassRecommendation {
 	       }
 	       return stringWithoutSpaces;
 		}
+	
+	public static void main(String args[]) {
+		ClassRecommendation obj=new ClassRecommendation();		
+		List<String>classes = new ArrayList<>();
+		classes.add("Person#!%$&_under");
+		classes.add("1234");
+		classes.add("Dish");
+		List<String> results = obj.classRecommendation(classes.get(0));
+		System.out.println(results);
+	}
+
 }

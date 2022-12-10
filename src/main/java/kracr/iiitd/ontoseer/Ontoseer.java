@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -25,9 +26,14 @@ public class Ontoseer {
 	public static List<String> objectPropertyList;
 	public static List<String> dataPropertyList;
 	public  String path;
-	public int argInd; 
+	public int argIndx,argLength; 
+	public String[] arguments;
 	public HashMap<String, String> reClass;
 	public HashMap<String, String> reProperty;
+	public String[] commands_ = {"-cr","-pr","-or","-ar","-vr","-chr",
+			"-ClassRecommendation","-PropertyRecommendation",
+			"-ODPRecommendation","-AxiomRecommendation",
+			"-VocabularyRecommendation","-ClassHierarchyValidation"};
 
 	
 	public void commands() {
@@ -35,10 +41,10 @@ public class Ontoseer {
 		 System.out.println("-p <Ontology file path> -cr|-pr|-or|-ar|-chr|-vr <arguments for respective recommendation>");
 		 System.out.println("\t-cr -ClassRecommendation <class1 class2 class3 .... >");
 		 System.out.println("\t-pr -PropertyRecommendation <Property1 Property2 ......>");
-		 System.out.println("\t-or -ODPRecommendation <arg1 arg2 arg3>");
+		 System.out.println("\t-or -ODPRecommendation <arg1 arg2 arg3(optional)>");
 		 System.out.println("\t\targ1 -- Description of the ontology");
 		 System.out.println("\t\targ2 -- Domain of ontology");
-		 System.out.println("\t\targ3 -- Competency questions");
+		 System.out.println("\t\targ3 -- Competency questions, "+ "It is optional");
 		 System.out.println("\t-ar -AxiomRecommendation <class|property>");
 		 System.out.println("\t\tClass or Property for which you want the axiom recommendation");
 		 System.out.println("\t-chr -ClassHierarchyValidation <arg1 arg2 arg3 arg4>(all arguments are mandatory)");
@@ -51,7 +57,7 @@ public class Ontoseer {
 	}
 	
 	// To check next argument is a command or not
-	public boolean isPresent(String s, String[] commands_) {
+	public boolean isPresent(String s) {
 		for(String cmd : commands_) {
 			if(cmd.equals(s)) {
 				return true;
@@ -59,11 +65,47 @@ public class Ontoseer {
 		}
 		return false;
 	}
+		
+	public HashMap<String,List<String>> classNameRecommendation() {
+		HashMap<String,List<String>>recommendedClass = new HashMap<>();
+		System.out.println("\n************** Class Recommendation *************");
+		ClassRecommendation className = new ClassRecommendation();
+		for(;argIndx<argLength && !isPresent(arguments[argIndx]);argIndx++) {
+			recommendedClass.put(arguments[argIndx], className.classRecommendation(arguments[argIndx]));
+		}
+		System.out.println("-----------------------------------------------------------------------------------------------");
+		return recommendedClass;
+	}
 	
-	public void odpRecommendation(String[] args) {  //int argInd
+	public HashMap<String,List<String>> propertyNameRecommendation() {
 		
-		System.out.println("\n\n\n************** ODP Recommendation *************");
-		
+		HashMap<String,List<String>>recommendedProperty = new HashMap<>();
+		System.out.println("\n************** Property Recommendation *************");
+		PropertyRecommendation propertyName = new PropertyRecommendation();
+		for(;argIndx<argLength && !isPresent(arguments[argIndx]);argIndx++) {
+			recommendedProperty.put(arguments[argIndx], propertyName.propertiesRecommendation(arguments[argIndx]));
+		}
+		System.out.println("-----------------------------------------------------------------------------------------------");
+		return recommendedProperty;
+	}
+	
+	
+	public HashMap<String,HashMap<String,String>> axiomRecommendation() {
+		System.out.println("\n************** Axiom Recommendation *************");
+		HashMap<String,HashMap<String, String>>reAxiom = new HashMap<>();
+		 AxiomRecommendation axioms = new AxiomRecommendation();
+		 if(argIndx<argLength && !isPresent(arguments[argIndx])) {
+			 HashMap<String,String>result =  axioms.axiomRecommendation(arguments[argIndx]);
+			 reAxiom.put(arguments[argIndx], result);
+			 argIndx++;
+		 }
+		 System.out.println("-----------------------------------------------------------------------------------------------");
+		 return reAxiom;
+	}
+	
+	public List<List<String>> odpRecommendation() {
+		System.out.println("\n************** ODP Recommendation *************");
+		List<List<String>> reODP = new ArrayList<>();
 		 // List to contains all the entities 
 		 List<String>temp = new ArrayList<String>();
 		 for(Map.Entry<String, String> entry : reClass.entrySet()) {
@@ -73,73 +115,43 @@ public class Ontoseer {
 			 temp.add(entry.getValue());
 		 }
 		 temp.addAll(dataPropertyList);
-		 String[] str = temp.toArray(new String[0]);
+		 String[] str = temp.toArray(new String[0]);   // Array of all class and data properties 
 		 ODPRecommendation odprcmd = new ODPRecommendation(str);
-		 odprcmd.ODP(str, args[argInd], args[argInd+1], args[argInd+2]);
-		 System.out.println("-----------------------------------------------------------------------------------------------");
-	}
-	
-	public int axiomRecommendation(String[] args, int argLength, String[] commands_, Ontoseer ontoseer) {
-		System.out.println("\n\n\n************** Axiom Recommendation *************");
-		 AxiomRecommendation axioms = new AxiomRecommendation();
-		 if(argInd<argLength && !ontoseer.isPresent(args[argInd], commands_)) {
-			 HashMap<String, String>reAxiom =  axioms.axiomRecommendation(args[argInd]);
-			 argInd++;
+		 if((argIndx+2)<argLength && !isPresent(arguments[argIndx+2])) {
+			 reODP = odprcmd.ODP(str, arguments[argIndx], arguments[argIndx+1], arguments[argIndx+2]);
+		}
+		 else if((argIndx+1)<argLength && !isPresent(arguments[argIndx+1])){
+			 reODP = odprcmd.ODP(str, arguments[argIndx], arguments[argIndx+1]);
+		 }
+		 else {
+			 commands();
 		 }
 		 System.out.println("-----------------------------------------------------------------------------------------------");
-		 return argInd;
+		 return reODP;
 	}
+
 	
-	public int classNameConvention(String []args, int argLength, String[] commands_, Ontoseer ontoseer) {
-//		System.out.println("argIndex = "+argInd);
-		System.out.println("\n\n\n************** Class Recommendation *************");
-//			NameConventionPanel namingPanel = new NameConventionPanel();
-		ClassRecommendation className = new ClassRecommendation();
-		reClass = className.classRecommendation(classlist);
-		for(;argInd<argLength && !ontoseer.isPresent(args[argInd],commands_);argInd++) {
-			if(reClass.containsKey(args[argInd])) {
-				System.out.println("Recommended class for "+args[argInd]+" is "+reClass.get(args[argInd]));
-			}
-			else {
-				System.out.println(args[argInd]+ " class is not present in ontology");
-			}
-		}
-		System.out.println("-----------------------------------------------------------------------------------------------");
-		return argInd;
-	}
-	
-	public int propertyNameConvention(String[] args, int argLength, String[] commands_,  Ontoseer ontoseer) { //int argInd,
-		System.out.println("\n\n\n************** Property Recommendation *************");
-		PropertyRecommendation propertyName = new PropertyRecommendation();
-		reProperty = propertyName.propertiesRecommendation(objectPropertyList);
-		for(;argInd<argLength && !ontoseer.isPresent(args[argInd],commands_);argInd++) {
-			if(reProperty.containsKey(args[argInd])) {
-				System.out.println("Recommended property for "+args[argInd]+" is "+reProperty.get(args[argInd]));
-			}
-			else {
-				System.out.println(args[argInd]+ " property is not present in ontology");
-			}
-		}
-		System.out.println("-----------------------------------------------------------------------------------------------");
-		return argInd;
-	}
-	
-	public void classHierarchyValidation(String[] args) { //int argInd,
+	public String classHierarchyValidation() {
+		String result = "";
 		ClassHierarchyValidation classHierarchyValidation = new ClassHierarchyValidation();
-		System.out.println("\n\n\n************** Class Hierarchy Validation *************");
-		classHierarchyValidation.classHierarchy(args[argInd], args[argInd+1], args[argInd+2], args[argInd+3]);
+		System.out.println("\n************** Class Hierarchy Validation *************");
+		result = classHierarchyValidation.classHierarchy(arguments[argIndx], arguments[argIndx+1], 
+				arguments[argIndx+2], arguments[argIndx+3]);
 		System.out.println("-----------------------------------------------------------------------------------------------");
+		return result;
 	}
 	
-	public int vocabularyRecommendation(String[] args, int argLength, String[] commands_, Ontoseer ontoseer) { //, int argInd
-		 System.out.println("\n\n\n************** Vocabulary Recommendation *************");
+	public List<List<String>> vocabularyRecommendation() {
+		 System.out.println("\n************** Vocabulary Recommendation *************");
+		 List<List<String>> recVocab = new ArrayList<>();
 		 VocabularyRecommendation vocabRecommendation = new VocabularyRecommendation();
-		 if(argInd<argLength && !ontoseer.isPresent(args[argInd], commands_)) {
-			 vocabRecommendation.findsimilarity(args[argInd]);
-			 vocabRecommendation.URI(args[argInd]);
-			 argInd++;
+		 if(argIndx<argLength && !isPresent(arguments[argIndx])) {
+			 recVocab.add(vocabRecommendation.findsimilarity(arguments[argIndx]));
+			 recVocab.add(vocabRecommendation.URI(arguments[argIndx]));
+			 argIndx++;
 		 }
-		 return argInd;
+		 System.out.println("-----------------------------------------------------------------------------------------------");
+		 return recVocab;
 	}
 	
 	// To fetch the details of an ontology
@@ -148,9 +160,7 @@ public class Ontoseer {
 		try {
 		    // loading the axioms
 			final OWLOntology owl=manager.loadOntologyFromOntologyDocument(new File(path));
-			 //System.out.println(owl.getAxiomCount());
 			 Set<OWLEntity> ont = owl.getSignature();
-//			 System.out.println("ont "+ont);
 			 Set<OWLClass>classes = owl.getClassesInSignature();
 			 Set<OWLObjectProperty> prop;
 	         Set<OWLDataProperty> dataProp;
@@ -164,15 +174,9 @@ public class Ontoseer {
 	         classlist = new ArrayList<String>();
 	         objectPropertyList = new ArrayList<String>();
 	         dataPropertyList = new ArrayList<String>();
-//	         System.out.println("classes = "+ classes);
-	         
-	       //System.out.println("\n**********#### Classes ######*************\n");
+
 			 for(OWLClass cls : classes) {
-//				 System.out.println("+: " + cls.getIRI().getShortForm());
 				 classlist.add(cls.getIRI().getShortForm());
-				 //System.out.println("Class "+cls);
-				 
-				 //System.out.println(" \tObject Property Domain");
 	                for (OWLObjectPropertyDomainAxiom op : owl.getAxioms(AxiomType.OBJECT_PROPERTY_DOMAIN)) {                        
 	                        if (op.getDomain().equals(cls)) {   
 	                            for(OWLObjectProperty oop : op.getObjectPropertiesInSignature()){
@@ -200,10 +204,10 @@ public class Ontoseer {
 }
 	
 	public static void main(String[] args) {
-		System.out.print("\033[H\033[2J");  
-		System.out.flush();  
 		 Ontoseer ontoseer = new Ontoseer();
-		 
+		 ontoseer.arguments = args;
+		 ontoseer.argLength = args.length;
+		 System.out.println();
 		 if(args[0].equalsIgnoreCase("-p") && args.length>=2) {
 			 ontoseer.path = args[1];
 		 }
@@ -223,86 +227,119 @@ public class Ontoseer {
 		 ontoseer.parseOntology();
 			 ontoseer.reClass = new HashMap<>();
 			 ontoseer.reProperty = new HashMap<>();
-			 
-			 int argLength = args.length;
-			 String[] commands_ = {"-cr","-pr","-or","-ar","-vr","-chr","-ClassRecommendation","-PropertyRecommendation","-ODPRecommendation","-AxiomRecommendation","-VocabularyRecommendation","-ClassHierarchyValidation"};
 			 if(args.length>2) {
-				 ontoseer.argInd = 2;
-				 while(ontoseer.argInd<argLength) {
-					 String cmd = args[ontoseer.argInd];
-					 ontoseer.argInd++;
+				 ontoseer.argIndx = 2;
+				 while(ontoseer.argIndx<ontoseer.argLength) {
+					 String cmd = args[ontoseer.argIndx];
+					 ontoseer.argIndx++;
+					 
 					 // Recommend Class Name
 					 if(cmd.equals("-cr") || cmd.equals("-ClassRecommendation")) {
-						 if(ontoseer.argInd<argLength && ontoseer.isPresent(args[ontoseer.argInd], commands_)) {
+						 if(ontoseer.argIndx<ontoseer.argLength && ontoseer.isPresent(args[ontoseer.argIndx])) {
 							 ontoseer.commands();
 							 break;
 						 }
-						 ontoseer.argInd= ontoseer.classNameConvention(args, argLength, commands_, ontoseer); //, i
+						 HashMap<String,List<String>> result= ontoseer.classNameRecommendation(); //, i
+						 for(Map.Entry<String, List<String>> mp : result.entrySet()) {
+							 System.out.println(mp.getKey());
+							 System.out.println("\t+"+mp.getValue());
+						 }
 			 			}
 						 				
 			 		 // Property Name Recommendation
 					 else if(cmd.equals("-pr") || cmd.equals("-PropertyRecommendation")) {
-							 if(ontoseer.argInd<argLength && ontoseer.isPresent(args[ontoseer.argInd], commands_)) {
+							 if(ontoseer.argIndx<ontoseer.argLength && ontoseer.isPresent(args[ontoseer.argIndx])) {
 								 ontoseer.commands();
 								 break;
 							 }
-							 ontoseer.argInd = ontoseer.propertyNameConvention(args, argLength, commands_, ontoseer); //, i
+							 HashMap<String,List<String>>result = ontoseer.propertyNameRecommendation();
+							 for(Map.Entry<String, List<String>> mp : result.entrySet()) {
+								 System.out.println(mp.getKey());
+								 System.out.println("\t+"+mp.getValue());
+							 }
 			 			}
+					 
+					// Axiom Recommendation
+					 else if(cmd.equals("-ar") || cmd.equals("-AxiomRecommendation")){
+						 if(ontoseer.argIndx<ontoseer.argLength && ontoseer.isPresent(args[ontoseer.argIndx])) {
+							 ontoseer.commands();
+							 break;
+						 }
+						 else {
+							 HashMap<String,HashMap<String,String>>result = ontoseer.axiomRecommendation();
+							 for(Map.Entry<String, HashMap<String,String>>mp : result.entrySet()) {
+								 System.out.println(mp.getKey());
+								 for(Map.Entry<String, String>submp : mp.getValue().entrySet()) {
+									 System.out.println("\t+"+submp.getKey()+"\t"+submp.getValue());
+								 }
+							 }
+						  }
+						}
 						 				
 					 // ODP Recommendation
 					 else if(cmd.equals("-or") || cmd.equals("-ODPRecommendation")) {
-						 
-						 if(ontoseer.argInd>=argLength || (ontoseer.argInd+1)>=argLength || (ontoseer.argInd+2)>=argLength) {
+						 List<List<String>> recommendedODP = new ArrayList<>();
+						 if(ontoseer.argIndx>=ontoseer.argLength || (ontoseer.argIndx+1)>=ontoseer.argLength ) {
 							 ontoseer.commands();
 							 break;
 						 }
 						 
-						 else if(ontoseer.isPresent(args[ontoseer.argInd],commands_) || ontoseer.isPresent(args[ontoseer.argInd+1],commands_) || ontoseer.isPresent(args[ontoseer.argInd+2],commands_)) {
+						 else if(ontoseer.isPresent(args[ontoseer.argIndx]) || ontoseer.isPresent(args[ontoseer.argIndx+1])){
 							 ontoseer.commands();
 							 break;
 						 }
 						 else {
-						 ontoseer.odpRecommendation(args); //, i
-						 ontoseer.argInd = ontoseer.argInd+3;
+							 if((ontoseer.argIndx+2)<ontoseer.argLength && !ontoseer.isPresent(args[ontoseer.argIndx+2])) {
+								 recommendedODP = ontoseer.odpRecommendation();
+								 ontoseer.argIndx = ontoseer.argIndx+3;
+							}
+							 else {
+								 recommendedODP = ontoseer.odpRecommendation();
+								 ontoseer.argIndx +=2;
+							 }
+							 
+							 if(recommendedODP.size()>0) {
+								List<String>ls1 = recommendedODP.get(0);
+							 	List<String>ls2 = recommendedODP.get(1);
+							 	System.out.println("\t1. "+ls1.get(0).toString()+"\n"+"\tIRI: "+ls2.get(0)+"\n"+"\n"+"\t2. "+ls1.get(1).toString()+"\n"+"\tIRI: "+
+								    	ls2.get(1)+"\n"+"\n"+"\t3. "+ls1.get(2).toString()+"\n"+"\tIRI: "+ls2.get(2)+"\n"+"\n"+"\t4. "+ls1.get(3).toString()+"\n"+"\tIRI: "+
+								    	ls2.get(3));
+							 }
 						 }
 						}		 
 							 
-					// Axiom Recommendation
-					 else if(cmd.equals("-ar") || cmd.equals("-AxiomRecommendation")){
-						 if(ontoseer.argInd<argLength && ontoseer.isPresent(args[ontoseer.argInd], commands_)) {
-							 ontoseer.commands();
-							 break;
-						 }
-						 else {
-							 ontoseer.argInd= ontoseer.axiomRecommendation(args, argLength, commands_, ontoseer); //, i
-						 }
-						}
+					
 					
 					// Vocabulary Recommendation
 					 else if(cmd.equals("-vr") || cmd.equals("-VocabularyRecommendation")) {
-						 if(ontoseer.argInd<argLength && ontoseer.isPresent(args[ontoseer.argInd], commands_)) {
+						 if(ontoseer.argIndx<ontoseer.argLength && ontoseer.isPresent(args[ontoseer.argIndx])) {
 							 ontoseer.commands();
 							 break;
 						 }
 						 else {
-							 ontoseer.argInd = ontoseer.vocabularyRecommendation(args, argLength, commands_, ontoseer); //, i
+							 ontoseer.vocabularyRecommendation();
 						 }
 					}
 						
 					// Class Hierarchy validation
 					 else if(cmd.equals("-chr") || cmd.equals("-ClassHierarchyValidation")) {
-						 if(ontoseer.argInd>=argLength || (ontoseer.argInd+1)>=argLength || (ontoseer.argInd+2)>=argLength || (ontoseer.argInd+3)>=argLength) {
+						 if(ontoseer.argIndx>=ontoseer.argLength || (ontoseer.argIndx+1)>=ontoseer.argLength 
+								 || (ontoseer.argIndx+2)>=ontoseer.argLength ||(ontoseer.argIndx+3)>=ontoseer.argLength) {
+							 System.out.println("Insert all four input for class hierarchy validagtion");
 							 ontoseer.commands();
 							 break;
 						 }
 						
-						 else if(ontoseer.isPresent(args[ontoseer.argInd],commands_) || ontoseer.isPresent(args[ontoseer.argInd+1],commands_) || ontoseer.isPresent(args[ontoseer.argInd+2],commands_) || ontoseer.isPresent(args[ontoseer.argInd+3],commands_)) {
+						 else if(ontoseer.isPresent(args[ontoseer.argIndx]) || ontoseer.isPresent(args[ontoseer.argIndx+1]) 
+								 || ontoseer.isPresent(args[ontoseer.argIndx+2]) || ontoseer.isPresent(args[ontoseer.argIndx+3])) {
+							 System.out.println("Any input out of four for class hierarchy validation is missing");
 							 ontoseer.commands();
 							 break;
 						 }
 						 else {
-							 ontoseer.classHierarchyValidation(args); //, i
-							 ontoseer.argInd = ontoseer.argInd+4;
+							 
+							 System.out.println(ontoseer.classHierarchyValidation());
+							 ontoseer.argIndx = ontoseer.argIndx+4;
 						 }
 					}
 							 
