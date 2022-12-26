@@ -1,7 +1,5 @@
 package kracr.iiitd.ontoseer;
 
-//package edu.stanford.bmir.protege.examples.view;
-
 import java.util.*;
 
 public class VocabularyRecommendation {

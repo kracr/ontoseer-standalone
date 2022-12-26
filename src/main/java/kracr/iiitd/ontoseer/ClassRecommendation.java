@@ -3,6 +3,8 @@ package kracr.iiitd.ontoseer;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +87,7 @@ public class ClassRecommendation {
 		try {
 			
 			// parsing a CSV file into BufferedReader class constructor
-			BufferedReader br = new BufferedReader(new FileReader("src/main/resources/classIRI.txt"));
+			BufferedReader br = new BufferedReader((new FileReader("src\\main\\resources\\classIRI.txt")));
 			while ((line = br.readLine()) != null) // returns a Boolean value
 			{
 				String[] cls = line.split(splitBy); // use comma as separator
